@@ -1,4 +1,4 @@
-import pygame
+import pygame,time
 from projectiles import bullet
 class player():
     def __init__(self,xcoord,ycoord,width,height):
@@ -13,7 +13,7 @@ class player():
         self.rotor = pygame.image.load("images/rotor01.png")
         self.bullets = []
         self.bulletdelay = 0
-    def move(self,keys,window):
+    def move(self,keys,window,enemies):  #move and draw it self and bullet
         winwidth,winheight = window.get_size()
         if keys[pygame.K_w] and self.ycoord >= self.velocity:
          self.ycoord -= self.velocity
@@ -25,16 +25,25 @@ class player():
             self.xcoord += self.velocity
         if keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]:
              b = bullet(self.xcoord+20,self.ycoord,window)      #old value : 0
-             b2 = bullet(self.xcoord+62,self.ycoord,window)  #old value : +82
-             if len(self.bullets)<98 and self.bulletdelay <= 0:
+             b2 = bullet(self.xcoord+62,self.ycoord,window)  # old value : +82
+             if len(self.bullets)<=18 and self.bulletdelay <= 0:  # limits player bullets on screen under 20
                 self.bullets.append(b)
                 self.bullets.append(b2)
                 self.bulletdelay = 5
-            
+
         for b in self.bullets:
-            window.blit(b.image,(b.x,b.y))
-            if not b.move():
+            displaybullet = True
+            for e in enemies:
+                for box in e.hitboxes:
+                    if b.x > box[0] and b.y > box[1] and b.x < box[0]+box[2] and b.y < box[1]+box[3]:
+                        e.hit()
+                        displaybullet = False
+            if not b.move() or not displaybullet:
                 self.bullets.pop(self.bullets.index(b))
+            if displaybullet:
+                window.blit(b.image,(b.x,b.y))
+            
+
         window.blit(self.mainplaneshadow,(self.xcoord-5,self.ycoord-5))
         window.blit(self.mainplane,(self.xcoord,self.ycoord))
         if self.rotorcount <= 4 :
@@ -45,6 +54,7 @@ class player():
         
         self.rotorcount+=1
 
-        if self.bulletdelay >= 0:
+        if self.bulletdelay > 0:
             self.bulletdelay-=1
-        
+    def removebullet(self, bullet): #remove bullet that touched the enemy
+        self.bullets.pop(self.bullets.index(bullet))
