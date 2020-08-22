@@ -7,7 +7,7 @@ pygame.init()
 winwidth = 1000
 winheight = 700
 window = pygame.display.set_mode((winwidth,winheight))
-difficulty = 4
+difficulty = 5
 pygame.display.set_caption("Plane Game")
 run = True
 enemies = []
@@ -19,8 +19,14 @@ background = pygame.image.load("images/nightsky.png")
 background = pygame.transform.scale(background, (1000, 700))
 Cycle = 0
 Over = False  # if the game is over
-countdown = 0 # countdown once the game is over
 
+def determinecycle():  # determine how many cycles to the level
+    if difficulty <= 3: # dif 1-3 has 4 cycles
+        return 5
+    if difficulty <= 5 : # dif 4,5 has 5 cycles
+        return 6
+    else:
+        return 5  # dif 6 (insane mode) has 5 cycles
 def checkrands(target,rands): #helper function to spawnenemies()
     if len(rands)!=0:
         for rand in rands:
@@ -29,11 +35,17 @@ def checkrands(target,rands): #helper function to spawnenemies()
     else:
         return True
     return True
-
+def computewavelength():
+    if difficulty <= 3:
+        return 4
+    elif difficulty == 4:
+        return 5
+    else:
+        return 5
 
 def spawnenemies(Cycle):
     global enemies
-    numenemy = (difficulty-2+Cycle) + wavecount
+    numenemy = (difficulty-3+Cycle) + wavecount
     spawnbias = random.randint(Cycle,numenemy-1)
     numenemy = numenemy - spawnbias
     rands = []
@@ -51,7 +63,7 @@ def spawnenemies(Cycle):
             e = enemy(rand,0,window)
         elif x == 1:
             e = enemy2(rand,0,window)
-        elif x == 3:
+        elif x == 2:
             e = enemy3(rand,0,window)
         else:
             e = enemy(rand,0,window)
@@ -60,19 +72,17 @@ def spawnenemies(Cycle):
 
 def checkplayer(player,enemies,Over):
     global pause
-    global countdown
     if player.dead:  # player lost
         pause = not pause
         deathtext = bigfont.render('Game Over',1,(255,0,0) )
         window.blit(deathtext, (330,250))
-    elif Over and countdown < 400:
-        countdown += 1
-    elif Over and not player.dead and countdown >= 400:   # player won
+
+    elif Over and not player.dead and len(enemies) == 0:   # player won
         congrattext = bigfont.render('Congrats You Survived!!',1,(0,255,0) )
         window.blit(congrattext, (130,250))
         congrattext =  font.render('You Score:'+str(mainchar.score),1,(69,123,255) )
         window.blit(congrattext, (330,350))
-        enemies.clear()
+        # enemies.clear()
 
 def redraw():
     global wavecount
@@ -96,12 +106,11 @@ def redraw():
         tickcount += 1
         temp = wavecount
         if difficulty <= 5:
-            wavecount = tickcount // (360 -60* difficulty)    # how long each wave lasts
+            wavecount = tickcount // (300 -50* computewavelength())    # how long each wave lasts
         else:
             wavecount = tickcount // 40
 
         if wavecount > temp : 
-            print("spawn")   
             spawnenemies(Cycle)
         for enemy in enemies:  # check state of all enemies
             if enemy.move(mainchar) and not enemy.dead :
@@ -115,7 +124,7 @@ def redraw():
          wavecount = 5
          tickcount = 60 * 5        # once reach wave 8 restart from wave 2
          Cycle += 1
-         if Cycle >= 4:
+         if Cycle >= determinecycle():
             Over = True
     mainchar.move(keys,window,enemies)
     pygame.display.update()

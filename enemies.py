@@ -35,7 +35,7 @@ class enemy():  # standard plane, slow but heavy hitter
         if self.health <= 0 :
             self.dead = True
     def move(self,player):  # update the enemy's position
-        if self.yhitbox[1] + self.velocity <= 700:
+        if self.y + self.velocity <= 700:
             self.y += self.velocity
             self.movehitbox()
             self.detecthit(player)
@@ -53,7 +53,7 @@ class enemy():  # standard plane, slow but heavy hitter
             if self.hitanimation <= 8:
                 self.hitanimation += 1    # hitanimation last 8 frames
         self.displayrotor()
-        # self.displayhitbox()
+        self.displayhitbox()
     def displayrotor(self):
         if self.rotorcount <= 4 :
             self.window.blit(self.rotor,(self.x-2,self.y+60))
@@ -111,7 +111,7 @@ class enemy3(enemy):  # kamakazi plane with tracking capability
             xdifference = self.x - player.xcoord
 
             ydifference = self.y - player.ycoord
-            if ydifference == 0:  # handle divide by zero error
+            if xdifference == 0:  # handle divide by zero error
                 self.dead
             angle = math.atan(ydifference/xdifference)
             xvel = self.velocity * math.cos(angle)
@@ -122,7 +122,6 @@ class enemy3(enemy):  # kamakazi plane with tracking capability
             elif xdifference > 0  and ydifference < 0:
                  self.x -= xvel
                  self.y -= yvel
-            
             else:
                  self.y += yvel
                  self.x += xvel
