@@ -34,11 +34,11 @@ class enemy():  # standard plane, slow but heavy hitter
         self.health -= 1
         if self.health <= 0 :
             self.dead = True
-    def move(self,player):  # update the enemy's position
+    def move(self,players):  # update the enemy's position
         if self.y + self.velocity <= 700:
             self.y += self.velocity
             self.movehitbox()
-            self.detecthit(player)
+            self.detecthit(players)
             return True
         else:
             return False
@@ -53,7 +53,7 @@ class enemy():  # standard plane, slow but heavy hitter
             if self.hitanimation <= 8:
                 self.hitanimation += 1    # hitanimation last 8 frames
         self.displayrotor()
-        self.displayhitbox()
+      #  self.displayhitbox()
     def displayrotor(self):
         if self.rotorcount <= 4 :
             self.window.blit(self.rotor,(self.x-2,self.y+60))
@@ -64,9 +64,10 @@ class enemy():  # standard plane, slow but heavy hitter
     def displayhitbox(self):
         pygame.draw.rect(self.window,(255,0,0),self.hitboxes[0],2)
         pygame.draw.rect(self.window,(255,0,0),self.hitboxes[1],2)  # draw hitbox
-    def detecthit(self,player):  # detect if player hitbox is inside enemy hitbox
+    def detecthit(self,players):  # detect if players hitbox is inside enemy hitbox
         for hitbox in self.hitboxes:
             box = pygame.Rect(hitbox[0],hitbox[1],hitbox[2],hitbox[3])
+        for player in players:
             for phitbox in player.hitboxes:
                 playerbox = pygame.Rect(phitbox[0],phitbox[1],phitbox[2],phitbox[3])
                 if playerbox.colliderect(box): 
@@ -105,14 +106,25 @@ class enemy3(enemy):  # kamakazi plane with tracking capability
         self.scorevalue = 1 
     def displayrotor(self):
         pass
-    def move(self,player):
+    def move(self,players):
         if self.yhitbox[1] + self.velocity <= 700:
                                                     # tracking algorithm
-            xdifference = self.x - player.xcoord
-
-            ydifference = self.y - player.ycoord
+       
+            xdifference = 0
+            ydifference = 0
+            mindis = 100000
+            for player in players:       # find the nearest player and tracks him
+                xdi = self.x - player.xcoord
+                ydi = self.y - player.ycoord
+                distance = math.sqrt(xdi**2 + ydi**2)
+                if distance < mindis:
+                    mindis = distance  
+                    xdifference = xdi       # xdifference and ydifference will be the for the nearest player
+                    ydifference = ydi
+            
             if xdifference == 0:  # handle divide by zero error
                 self.dead
+                return False   
             angle = math.atan(ydifference/xdifference)
             xvel = self.velocity * math.cos(angle)
             yvel = self.velocity * math.sin(angle)
@@ -125,7 +137,7 @@ class enemy3(enemy):  # kamakazi plane with tracking capability
             else:
                  self.y += yvel
                  self.x += xvel
-            self.detecthit(player)
+            self.detecthit(players)
             self.movehitbox()
             return True
         else:
@@ -133,15 +145,16 @@ class enemy3(enemy):  # kamakazi plane with tracking capability
     def movehitbox(self):
         self.hitboxes[0]=((self.x+5, self.y+30,80,17))
         self.hitboxes[1]=((self.x+42, self.y+5,10,70))
-    def detecthit(self,player):  # detect if player hitbox is inside enemy hitbox
+    def detecthit(self,players):  # detect if player hitbox is inside enemy hitbox
         for hitbox in self.hitboxes:
             box = pygame.Rect(hitbox[0],hitbox[1],hitbox[2],hitbox[3])
-            for phitbox in player.hitboxes:
-                playerbox = pygame.Rect(phitbox[0],phitbox[1],phitbox[2],phitbox[3])
-                if playerbox.colliderect(box): 
-                    if player.iframe == 0 :
-                        player.hit(self.attack)        # if rects collide minus health from player
-                        self.dead = True
-                        player.iframe += 1
+            for player in players:
+                for phitbox in player.hitboxes:
+                    playerbox = pygame.Rect(phitbox[0],phitbox[1],phitbox[2],phitbox[3])
+                    if playerbox.colliderect(box): 
+                        if player.iframe == 0 :
+                            player.hit(self.attack)        # if rects collide minus health from player
+                            self.dead = True
+                            player.iframe += 1
 
     

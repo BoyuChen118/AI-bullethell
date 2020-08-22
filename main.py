@@ -7,7 +7,7 @@ pygame.init()
 winwidth = 1000
 winheight = 700
 window = pygame.display.set_mode((winwidth,winheight))
-difficulty = 5
+difficulty = 4
 pygame.display.set_caption("Plane Game")
 run = True
 enemies = []
@@ -19,11 +19,11 @@ background = pygame.image.load("images/nightsky.png")
 background = pygame.transform.scale(background, (1000, 700))
 Cycle = 0
 Over = False  # if the game is over
-
+trainingmode = True
 def determinecycle():  # determine how many cycles to the level
-    if difficulty <= 3: # dif 1-3 has 4 cycles
+    if difficulty <= 3: # dif 1-3 has 5 cycles
         return 5
-    if difficulty <= 5 : # dif 4,5 has 5 cycles
+    if difficulty <= 5 : # dif 4,5 has 6 cycles
         return 6
     else:
         return 5  # dif 6 (insane mode) has 5 cycles
@@ -72,11 +72,17 @@ def spawnenemies(Cycle):
 
 def checkplayer(player,enemies,Over):
     global pause
-    if player.dead:  # player lost
+
+    if player.dead and len(players)>1:
+        players.pop(players.index(player))
+    elif player.dead and len(players)==1:  # single player mode (not training mode)
         pause = not pause
         deathtext = bigfont.render('Game Over',1,(255,0,0) )
         window.blit(deathtext, (330,250))
-
+    if len(players)==0:  # player lost
+        pause = not pause
+        deathtext = bigfont.render('Game Over',1,(255,0,0) )
+        window.blit(deathtext, (330,250))
     elif Over and not player.dead and len(enemies) == 0:   # player won
         congrattext = bigfont.render('Congrats You Survived!!',1,(0,255,0) )
         window.blit(congrattext, (130,250))
@@ -90,18 +96,21 @@ def redraw():
     global Cycle
     global Over
     window.blit(background,(0,0))
-    healthtext = font.render('Health: '+ str(mainchar.health),1,(0,255,0))   # display health
-    scoretext = font.render('Score: '+ str(mainchar.score),1,(255,255,0))
-    window.blit(healthtext,(800,0))
-    window.blit(scoretext,(800,50))
+    if len(players)== 1:  # single player mode
+        healthtext = font.render('Health: '+ str(players[0].health),1,(0,255,0))   # display health
+        scoretext = font.render('Score: '+ str(players[0].score),1,(255,255,0))
+        window.blit(healthtext,(800,0))
+        window.blit(scoretext,(800,50))
     if Over:   # check if game is over first
         for enemy in enemies:  # check state of all enemies
-            if enemy.move(mainchar) and not enemy.dead :
-                checkplayer(mainchar,enemies,Over)
-                enemy.display() 
-            else:
-                enemies.pop(enemies.index(enemy))
-        checkplayer(mainchar,enemies,Over)
+                if enemy.move(players) and not enemy.dead :
+                    for p in players:
+                        checkplayer(p,enemies,Over)
+                    enemy.display() 
+                else:
+                    enemies.pop(enemies.index(enemy))
+        for p in players:   # check players again after all enemies moved out of frame
+              checkplayer(p,enemies,Over)
     elif wavecount <= 5+(difficulty-1) and not Over:
         tickcount += 1
         temp = wavecount
@@ -110,14 +119,15 @@ def redraw():
         else:
             wavecount = tickcount // 40
 
-        if wavecount > temp : 
+        if wavecount > temp :  # spawn enemies at start of new wave
             spawnenemies(Cycle)
         for enemy in enemies:  # check state of all enemies
-            if enemy.move(mainchar) and not enemy.dead :
-                checkplayer(mainchar,enemies,Over)
-                enemy.display() 
-            else:
-                enemies.pop(enemies.index(enemy))
+                if enemy.move(players) and not enemy.dead :
+                    for p in players:
+                        checkplayer(p,enemies,Over)
+                    enemy.display() 
+                else:
+                    enemies.pop(enemies.index(enemy))
        
            
     else:
@@ -126,10 +136,19 @@ def redraw():
          Cycle += 1
          if Cycle >= determinecycle():
             Over = True
-    mainchar.move(keys,window,enemies)
+    for p in players:
+        p.move(keys,window,enemies)
     pygame.display.update()
-  
+players = []
 mainchar = player(500,350,100,100)
+mainchar2 = player(230,400,100,100)
+mainchar3 = player(100,200,100,100)
+players.append(mainchar)
+players.append(mainchar2)
+players.append(mainchar3)
+if trainingmode:
+    for p in players:
+        p.health = 1
 font = pygame.font.SysFont('comicsans',30,True)
 bigfont = pygame.font.SysFont('comicsans',80,True)
 while run:
