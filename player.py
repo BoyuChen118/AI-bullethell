@@ -22,6 +22,7 @@ class player():
         self.hitboxes.append(self.yhitbox)
         self.iframe = 0
         self.dead = False
+        self.score = 0
     def move(self,keys,window,enemies):  #move and draw it self and bullet
         winwidth,winheight = window.get_size()
         if keys[pygame.K_w] and self.ycoord >= self.velocity:
@@ -39,7 +40,7 @@ class player():
              if len(self.bullets)<=18 and self.bulletdelay <= 0:  # limits player bullets on screen under 20
                 self.bullets.append(b)
                 self.bullets.append(b2)
-                self.bulletdelay = 5
+                self.bulletdelay = 5          # adjust shooting speed (lower the faster)
         self.hitboxes[0] = (self.xcoord,self.ycoord+22,90,20)
         self.hitboxes[1] = (self.xcoord+40,self.ycoord,10,70)
         for b in self.bullets:     # bullet detection !
@@ -49,6 +50,8 @@ class player():
                     if b.x > box[0] and b.y > box[1] and b.x < box[0]+box[2] and b.y < box[1]+box[3]:
                         e.hit()
                         displaybullet = False
+                        if e.dead:    # increment score if scores a kill
+                            self.score += e.scorevalue
             if not b.move() or not displaybullet:
                 self.bullets.pop(self.bullets.index(b))
             if displaybullet:

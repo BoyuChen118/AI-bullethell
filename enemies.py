@@ -1,8 +1,8 @@
-import pygame
+import pygame,math
 from player import player
 class enemy():  # standard plane, slow but heavy hitter
     def __init__(self,x,y,window):
-        self.health = 20
+        self.health = 18
         self.attack = 50 
         self.x = x
         self.y = y
@@ -23,6 +23,7 @@ class enemy():  # standard plane, slow but heavy hitter
         self.dead = False
         self.hitanimation = 0
         self.rotorcount = 0
+        self.scorevalue = 2    # how much score its worth
     def movehitbox(self):
         self.hitboxes[0] = (self.x, self.y+40,110,20)
         self.hitboxes[1] = (self.x+45, self.y+5,18,80)
@@ -84,8 +85,64 @@ class enemy2(enemy):  # fast plane with lighter attack
         self.health = 6
         self.hitboxes.append((self.x+5, self.y+30,80,17))
         self.hitboxes.append((self.x+42, self.y+5,10,70))
+        self.scorevalue = 1 
     def displayrotor(self):
         pass
     def movehitbox(self):
         self.hitboxes[0]=((self.x+5, self.y+30,80,17))
         self.hitboxes[1]=((self.x+42, self.y+5,10,70))
+class enemy3(enemy):  # kamakazi plane with tracking capability
+    def __init__(self,x,y,window):
+        super().__init__(x,y,window)
+        self.image =  pygame.transform.rotate(pygame.image.load("images/more/aircraft_2.png"),180)
+        self.damaged = pygame.transform.rotate(pygame.image.load("images/more/aircraft_2_hit.png"),180)
+        self.shadow = pygame.transform.rotate(pygame.image.load("images/more/aircraft_2_shadow.png"),180)
+        self.velocity = 6
+        self.attack = 20
+        self.health = 1
+        self.hitboxes.append((self.x+5, self.y+30,80,17))
+        self.hitboxes.append((self.x+42, self.y+5,10,70))
+        self.scorevalue = 1 
+    def displayrotor(self):
+        pass
+    def move(self,player):
+        if self.yhitbox[1] + self.velocity <= 700:
+                                                    # tracking algorithm
+            xdifference = self.x - player.xcoord
+
+            ydifference = self.y - player.ycoord
+            if ydifference == 0:  # handle divide by zero error
+                self.dead
+            angle = math.atan(ydifference/xdifference)
+            xvel = self.velocity * math.cos(angle)
+            yvel = self.velocity * math.sin(angle)
+            if xdifference > 0 and ydifference > 0:
+                 self.x -= xvel
+                 self.y -= yvel
+            elif xdifference > 0  and ydifference < 0:
+                 self.x -= xvel
+                 self.y -= yvel
+            
+            else:
+                 self.y += yvel
+                 self.x += xvel
+            self.detecthit(player)
+            self.movehitbox()
+            return True
+        else:
+            return False
+    def movehitbox(self):
+        self.hitboxes[0]=((self.x+5, self.y+30,80,17))
+        self.hitboxes[1]=((self.x+42, self.y+5,10,70))
+    def detecthit(self,player):  # detect if player hitbox is inside enemy hitbox
+        for hitbox in self.hitboxes:
+            box = pygame.Rect(hitbox[0],hitbox[1],hitbox[2],hitbox[3])
+            for phitbox in player.hitboxes:
+                playerbox = pygame.Rect(phitbox[0],phitbox[1],phitbox[2],phitbox[3])
+                if playerbox.colliderect(box): 
+                    if player.iframe == 0 :
+                        player.hit(self.attack)        # if rects collide minus health from player
+                        self.dead = True
+                        player.iframe += 1
+
+    

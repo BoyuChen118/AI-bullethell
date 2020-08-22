@@ -1,14 +1,14 @@
 import math,random,time
 import pygame
 from player import player
-from enemies import enemy,enemy2
+from enemies import enemy,enemy2,enemy3
 pygame.init()
 
 winwidth = 1000
 winheight = 700
 window = pygame.display.set_mode((winwidth,winheight))
-difficulty = 1
-pygame.display.set_caption("Hello World")
+difficulty = 4
+pygame.display.set_caption("Plane Game")
 run = True
 enemies = []
 wavecount = 0  # ten waves in each game
@@ -17,8 +17,9 @@ gameclock = pygame.time.Clock()
 pause = False
 background = pygame.image.load("images/nightsky.png")
 background = pygame.transform.scale(background, (1000, 700))
-
-
+Cycle = 0
+Over = False  # if the game is over
+countdown = 0 # countdown once the game is over
 
 def checkrands(target,rands): #helper function to spawnenemies()
     if len(rands)!=0:
@@ -30,60 +31,100 @@ def checkrands(target,rands): #helper function to spawnenemies()
     return True
 
 
-def spawnenemies():
+def spawnenemies(Cycle):
     global enemies
-    
-    numenemy = difficulty * wavecount
-    spawnbias = random.randint(0,numenemy-1)
+    numenemy = (difficulty-2+Cycle) + wavecount
+    spawnbias = random.randint(Cycle,numenemy-1)
     numenemy = numenemy - spawnbias
     rands = []
     for i in range(0,numenemy):
         ok = False
         failcounter = 0
         while not ok and failcounter <= 30:  # keep distance between enemies
-            x = random.randint(100,900)
+            x = random.randint(50,950)    # where on the x axis does the plane spawn
             ok = checkrands(x,rands)
             failcounter += 1        # if failed to generate enough distance too many times then go with it
         rands.append(x)
     for rand in rands:
-        x = random.randint(0,1)     # determine what enemy to generate
+        x = random.randint(0,difficulty-1)     # determine what enemy to generate
         if x == 0:
             e = enemy(rand,0,window)
-        else:
+        elif x == 1:
             e = enemy2(rand,0,window)
+        elif x == 3:
+            e = enemy3(rand,0,window)
+        else:
+            e = enemy(rand,0,window)
         enemies.append(e)
-def checkplayer(player):
+        
+
+def checkplayer(player,enemies,Over):
     global pause
-    if player.dead:
+    global countdown
+    if player.dead:  # player lost
         pause = not pause
+        deathtext = bigfont.render('Game Over',1,(255,0,0) )
+        window.blit(deathtext, (330,250))
+    elif Over and countdown < 400:
+        countdown += 1
+    elif Over and not player.dead and countdown >= 400:   # player won
+        congrattext = bigfont.render('Congrats You Survived!!',1,(0,255,0) )
+        window.blit(congrattext, (130,250))
+        congrattext =  font.render('You Score:'+str(mainchar.score),1,(69,123,255) )
+        window.blit(congrattext, (330,350))
+        enemies.clear()
+
 def redraw():
     global wavecount
     global tickcount
+    global Cycle
+    global Over
     window.blit(background,(0,0))
     healthtext = font.render('Health: '+ str(mainchar.health),1,(0,255,0))   # display health
+    scoretext = font.render('Score: '+ str(mainchar.score),1,(255,255,0))
     window.blit(healthtext,(800,0))
-    if wavecount <= 12:
+    window.blit(scoretext,(800,50))
+    if Over:   # check if game is over first
         for enemy in enemies:  # check state of all enemies
             if enemy.move(mainchar) and not enemy.dead :
-                checkplayer(mainchar)
+                checkplayer(mainchar,enemies,Over)
                 enemy.display() 
             else:
                 enemies.pop(enemies.index(enemy))
+        checkplayer(mainchar,enemies,Over)
+    elif wavecount <= 5+(difficulty-1) and not Over:
         tickcount += 1
         temp = wavecount
-        wavecount = tickcount // 60    # how long each wave lasts
-        if wavecount > temp :    
-            spawnenemies()
+        if difficulty <= 5:
+            wavecount = tickcount // (360 -60* difficulty)    # how long each wave lasts
+        else:
+            wavecount = tickcount // 40
+
+        if wavecount > temp : 
+            print("spawn")   
+            spawnenemies(Cycle)
+        for enemy in enemies:  # check state of all enemies
+            if enemy.move(mainchar) and not enemy.dead :
+                checkplayer(mainchar,enemies,Over)
+                enemy.display() 
+            else:
+                enemies.pop(enemies.index(enemy))
+       
+           
     else:
          wavecount = 5
          tickcount = 60 * 5        # once reach wave 8 restart from wave 2
+         Cycle += 1
+         if Cycle >= 4:
+            Over = True
     mainchar.move(keys,window,enemies)
     pygame.display.update()
   
 mainchar = player(500,350,100,100)
 font = pygame.font.SysFont('comicsans',30,True)
+bigfont = pygame.font.SysFont('comicsans',80,True)
 while run:
-    gameclock.tick(60) # fps controller
+    gameclock.tick(50) # fps controller
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
