@@ -257,7 +257,7 @@ def eval_genomes(genomes,config):
     tickcount = 0
     wavecount = 0
     gennum += 1
-
+    training = True
 
     for _,genome in genomes:  
         genome.fitness = 0 # initialize fitness to be 0
@@ -274,11 +274,9 @@ def eval_genomes(genomes,config):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 training = False
-                run = False
         keys = pygame.key.get_pressed()
         if keys[pygame.K_ESCAPE]:
-            pause = not pause
-            time.sleep(0.5)
+            run = False
         if pause:
             continue
 
