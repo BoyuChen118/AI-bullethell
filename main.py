@@ -27,11 +27,12 @@ trainingmode = True # enter training mode (train neural network to play the game
 oldmove = 0   # avoid AI doing the same moves
 oldmove2 = 0
 showhitbox = False  # show enemy hitboxes (for debugging only)
-font = pygame.font.SysFont('comicsans',30,True)
+f = pygame.font.SysFont('comicsans',30,True)
 bigfont = pygame.font.SysFont('comicsans',80,True)
 players = []
 networks = []
 genes = []
+gennum = 0
 def determinecycle():  # determine how many cycles to the level
     if difficulty <= 3: # dif 1-3 has 5 cycles
         return 16
@@ -70,7 +71,7 @@ def spawnenemies(Cycle):
             ok = checkrands(x,rands)
             failcounter += 1        # if failed to generate enough distance too many times then go with it
         rands.append(x)
-    if difficulty >= 3 and trainingmode:
+    if difficulty >= 2 and trainingmode:
         anticamp.append(70)
         anticamp.append(817)
         for a in anticamp:
@@ -113,7 +114,7 @@ def checkplayer(player,enemies,Over):
             return 
         congrattext = bigfont.render('Congrats You Survived!!',1,(0,255,0) )
         window.blit(congrattext, (130,250))
-        congrattext =  font.render('You Score:'+str(player.score),1,(69,123,255) )
+        congrattext =  f.render('You Score:'+str(player.score),1,(69,123,255) )
         window.blit(congrattext, (330,350))
         # enemies.clear()
 
@@ -160,8 +161,13 @@ def redraw(keys):
     global oldmove2
     window.blit(background,(0,0))
     if len(players)== 1 and not trainingmode:  # single player mode
-        healthtext = font.render('Health: '+ str(players[0].health),1,(0,255,0))   # display health
-        scoretext = font.render('Score: '+ str(players[0].score),1,(255,255,0))
+        healthtext = f.render('Health: '+ str(players[0].health),1,(0,255,0))   # display health
+        scoretext = f.render('Score: '+ str(players[0].score),1,(255,255,0))
+        window.blit(healthtext,(800,0))
+        window.blit(scoretext,(800,50))
+    if trainingmode:
+        healthtext = f.render('Generation: '+ str(gennum),1,(255,255,255))   # display health
+        scoretext = f.render('Population: '+ str(len(players)),1,(255,255,255))
         window.blit(healthtext,(800,0))
         window.blit(scoretext,(800,50))
     if Over:   # check if game is over first
@@ -230,6 +236,7 @@ def redraw(keys):
 
 def eval_genomes(genomes,config):
     #initialize everything everytime new generation gets run
+    pygame.init()
     global pause
     global training
     global networks
@@ -238,12 +245,9 @@ def eval_genomes(genomes,config):
     global Cycle
     global wavecount
     global tickcount
-    global background
-    global window
     global enemies
-    global difficulty
     global oldmoves
-    global font,bigfont
+    global gennum
     oldmoves = 0
     players = []
     networks = []
@@ -253,14 +257,8 @@ def eval_genomes(genomes,config):
     Cycle = 0
     tickcount = 0
     wavecount = 0
-    winwidth = 1000
-    winheight = 700
-    difficulty = 2
-    window = pygame.display.set_mode((winwidth,winheight))
-    background = pygame.image.load("images/nightsky.png")
-    background = pygame.transform.scale(background, (1000, 700))
-    font = pygame.font.SysFont('comicsans',30,True)
-    bigfont = pygame.font.SysFont('comicsans',80,True)
+    gennum += 1
+
 
     for _,genome in genomes:  
         genome.fitness = 0 # initialize fitness to be 0
@@ -272,7 +270,7 @@ def eval_genomes(genomes,config):
 
     for p in players:
         p.health = 1
-    while training:
+    while training and len(players) > 0 :
         gameclock.tick(50) # fps controller
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -286,7 +284,6 @@ def eval_genomes(genomes,config):
             continue
 
         redraw(keys)
-    pygame.quit()
 
 
 
