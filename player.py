@@ -23,34 +23,40 @@ class player():
         self.iframe = 0
         self.dead = False
         self.score = 0
-    def action(self,num):
-        if num == 0:
-            self.ycoord -= self.velocity
-        elif num == 1:
-            self.ycoord += self.velocity
-        elif num == 2:
-            self.xcoord -= self.velocity
-        elif num == 3:
-            self.xcoord += self.velocity
-    def move(self,keys,window,enemies):  #move and draw it self and bullet
+    def action(self,num,window):
         winwidth,winheight = window.get_size()
-        if keys[pygame.K_w] and self.ycoord >= self.velocity:
-            self.action(0)
-        if keys[pygame.K_s] and self.ycoord <= winheight-(self.height+self.velocity):
-            self.action(1)
-        if keys[pygame.K_a] and self.xcoord >= self.velocity:
-            self.action(2)
-        if keys[pygame.K_d] and self.xcoord <= winwidth-(self.width+self.velocity):
-            self.action(3)
-        if keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]:
-             b = bullet(self.xcoord+20,self.ycoord,window)      #old value : 0
-             b2 = bullet(self.xcoord+62,self.ycoord,window)  # old value : +82
-             if len(self.bullets)<=18 and self.bulletdelay <= 0:  # limits player bullets on screen under 20
+        if num == 0 and self.ycoord >= self.velocity:
+            self.ycoord -= self.velocity
+        elif num == 1 and self.ycoord <= winheight-(self.height+self.velocity):
+            self.ycoord += self.velocity
+        elif num == 2 and self.xcoord >= self.velocity:
+            self.xcoord -= self.velocity
+        elif num == 3 and self.xcoord <= winwidth-(self.width+self.velocity):
+            self.xcoord += self.velocity
+    def fire(self,window):
+            b = bullet(self.xcoord+20,self.ycoord,window)      #old value : 0
+            b2 = bullet(self.xcoord+62,self.ycoord,window)  # old value : +82
+            if len(self.bullets)<=18 and self.bulletdelay <= 0:  # limits player bullets on screen under 20
                 self.bullets.append(b)
                 self.bullets.append(b2)
                 self.bulletdelay = 5          # adjust shooting speed (lower the faster)
+    def move(self,keys,window,enemies):  #move and draw it self and bullet
+        winwidth,winheight = window.get_size()
+        if keys[pygame.K_w] and self.ycoord >= self.velocity:
+            self.action(0,window)
+        if keys[pygame.K_s] and self.ycoord <= winheight-(self.height+self.velocity):
+            self.action(1,window)
+        if keys[pygame.K_a] and self.xcoord >= self.velocity:
+            self.action(2,window)
+        if keys[pygame.K_d] and self.xcoord <= winwidth-(self.width+self.velocity):
+            self.action(3,window)
+        if keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]:
+            self.fire(window)
+        self.check(window,enemies)
+    def check(self,window,enemies):
         self.hitboxes[0] = (self.xcoord,self.ycoord+22,90,20)
         self.hitboxes[1] = (self.xcoord+40,self.ycoord,10,70)
+
         for b in self.bullets:     # bullet detection !
             displaybullet = True
             for e in enemies:

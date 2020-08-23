@@ -21,9 +21,11 @@ class enemy():  # standard plane, slow but heavy hitter
         self.hitboxes.append(self.yhitbox)
         self.hitted = False
         self.dead = False
+        self.showhitbox = False   # show this object's hitbox (for debugging only)
         self.hitanimation = 0
         self.rotorcount = 0
         self.scorevalue = 2    # how much score its worth
+        self.id = 0
     def movehitbox(self):
         self.hitboxes[0] = (self.x, self.y+40,110,20)
         self.hitboxes[1] = (self.x+45, self.y+5,18,80)
@@ -53,7 +55,8 @@ class enemy():  # standard plane, slow but heavy hitter
             if self.hitanimation <= 8:
                 self.hitanimation += 1    # hitanimation last 8 frames
         self.displayrotor()
-      #  self.displayhitbox()
+        if self.showhitbox:
+            self.displayhitbox()
     def displayrotor(self):
         if self.rotorcount <= 4 :
             self.window.blit(self.rotor,(self.x-2,self.y+60))
@@ -62,18 +65,18 @@ class enemy():  # standard plane, slow but heavy hitter
             self.rotorcount = 0 
         self.rotorcount += 1
     def displayhitbox(self):
-        pygame.draw.rect(self.window,(255,0,0),self.hitboxes[0],2)
-        pygame.draw.rect(self.window,(255,0,0),self.hitboxes[1],2)  # draw hitbox
+        for box in self.hitboxes:
+            pygame.draw.rect(self.window,(255,0,0),box,2)  # draw hitbox
     def detecthit(self,players):  # detect if players hitbox is inside enemy hitbox
         for hitbox in self.hitboxes:
             box = pygame.Rect(hitbox[0],hitbox[1],hitbox[2],hitbox[3])
-        for player in players:
-            for phitbox in player.hitboxes:
-                playerbox = pygame.Rect(phitbox[0],phitbox[1],phitbox[2],phitbox[3])
-                if playerbox.colliderect(box): 
-                    if player.iframe == 0 :
-                        player.hit(self.attack)        # if rects collide minus health from player
-                        player.iframe += 1
+            for player in players:
+                for phitbox in player.hitboxes:
+                    playerbox = pygame.Rect(phitbox[0],phitbox[1],phitbox[2],phitbox[3])
+                    if playerbox.colliderect(box): 
+                        if player.iframe == 0 :
+                            player.hit(self.attack)        # if rects collide minus health from player
+                            player.iframe += 1
 
 class enemy2(enemy):  # fast plane with lighter attack
     def __init__(self,x,y,window):
@@ -84,9 +87,10 @@ class enemy2(enemy):  # fast plane with lighter attack
         self.velocity = 7
         self.attack = 20
         self.health = 6
-        self.hitboxes.append((self.x+5, self.y+30,80,17))
-        self.hitboxes.append((self.x+42, self.y+5,10,70))
+        self.hitboxes[0]=(self.x+5, self.y+30,80,17)
+        self.hitboxes[1]=(self.x+42, self.y+5,10,70)
         self.scorevalue = 1 
+        self.id = 2
     def displayrotor(self):
         pass
     def movehitbox(self):
@@ -98,12 +102,13 @@ class enemy3(enemy):  # kamakazi plane with tracking capability
         self.image =  pygame.transform.rotate(pygame.image.load("images/more/aircraft_2.png"),180)
         self.damaged = pygame.transform.rotate(pygame.image.load("images/more/aircraft_2_hit.png"),180)
         self.shadow = pygame.transform.rotate(pygame.image.load("images/more/aircraft_2_shadow.png"),180)
-        self.velocity = 6
+        self.velocity = 5
         self.attack = 20
         self.health = 1
-        self.hitboxes.append((self.x+5, self.y+30,80,17))
-        self.hitboxes.append((self.x+42, self.y+5,10,70))
+        self.hitboxes = []
+        self.hitboxes.append((self.x, self.y+27,60,17))
         self.scorevalue = 1 
+        self.id = 3
     def displayrotor(self):
         pass
     def move(self,players):
@@ -143,8 +148,7 @@ class enemy3(enemy):  # kamakazi plane with tracking capability
         else:
             return False
     def movehitbox(self):
-        self.hitboxes[0]=((self.x+5, self.y+30,80,17))
-        self.hitboxes[1]=((self.x+42, self.y+5,10,70))
+        self.hitboxes[0]=((self.x, self.y+27,60,17))
     def detecthit(self,players):  # detect if player hitbox is inside enemy hitbox
         for hitbox in self.hitboxes:
             box = pygame.Rect(hitbox[0],hitbox[1],hitbox[2],hitbox[3])
