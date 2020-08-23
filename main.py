@@ -84,7 +84,7 @@ def spawnenemies(Cycle):
         elif x == 1:
             e = enemy2(rand,0,window)
         elif x == 2:
-            e = enemy2(rand,0,window)
+            e = enemy3(rand,0,window)
         else:
             e = enemy(rand,0,window)
         enemies.append(e)
@@ -229,16 +229,14 @@ def redraw(keys):
                 genes[index].fitness += 0.2
             oldmove = p.xcoord
             oldmove2 = p.ycoord
-            #p.fire(window)
+            p.fire(window)
             p.check(window,enemies)
     pygame.display.update()
 
 
 def eval_genomes(genomes,config):
     #initialize everything everytime new generation gets run
-    pygame.init()
     global pause
-    global training
     global networks
     global genes
     global players
@@ -248,12 +246,13 @@ def eval_genomes(genomes,config):
     global enemies
     global oldmoves
     global gennum
+    global training,run
     oldmoves = 0
     players = []
     networks = []
     genes = []
     enemies = []
-    training = True
+
     Cycle = 0
     tickcount = 0
     wavecount = 0
@@ -270,7 +269,7 @@ def eval_genomes(genomes,config):
 
     for p in players:
         p.health = 1
-    while training and len(players) > 0 :
+    while training and len(players) > 0 and run:
         gameclock.tick(50) # fps controller
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
