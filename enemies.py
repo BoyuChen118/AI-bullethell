@@ -24,7 +24,7 @@ class enemy():  # standard plane, slow but heavy hitter
         self.showhitbox = False   # show this object's hitbox (for debugging only)
         self.hitanimation = 0
         self.rotorcount = 0
-        self.scorevalue = 2    # how much score its worth
+        self.scorevalue = 4    # how much score its worth
         self.id = 0
     def movehitbox(self):
         self.hitboxes[0] = (self.x, self.y+40,110,20)
@@ -89,14 +89,85 @@ class enemy2(enemy):  # fast plane with lighter attack
         self.health = 6
         self.hitboxes[0]=(self.x+5, self.y+30,80,17)
         self.hitboxes[1]=(self.x+42, self.y+5,10,70)
-        self.scorevalue = 1 
+        self.scorevalue = 2 
         self.id = 2
     def displayrotor(self):
         pass
     def movehitbox(self):
         self.hitboxes[0]=((self.x+5, self.y+30,80,17))
         self.hitboxes[1]=((self.x+42, self.y+5,10,70))
-class enemy3(enemy):  # kamakazi plane with tracking capability
+
+
+class enemy3(enemy):  # kamakazi plane with tracking capability  (nerfed, now only tracks once)
+    def __init__(self,x,y,window):
+        super().__init__(x,y,window)
+        self.image =  pygame.transform.rotate(pygame.image.load("images/more/aircraft_2.png"),180)
+        self.damaged = pygame.transform.rotate(pygame.image.load("images/more/aircraft_2_hit.png"),180)
+        self.shadow = pygame.transform.rotate(pygame.image.load("images/more/aircraft_2_shadow.png"),180)
+        self.velocity = 5
+        self.attack = 20
+        self.health = 1
+        self.xvel = 0
+        self.yvel = 0
+        self.target = False
+        self.hitboxes = []
+        self.hitboxes.append((self.x, self.y+27,60,17))
+        self.scorevalue = 1 
+        self.id = 3
+    def displayrotor(self):
+        pass
+    def move(self,players):
+        if self.yhitbox[1] + self.velocity <= 700:
+                                                    # tracking algorithm
+       
+            xdifference = 0
+            ydifference = 0
+            mindis = 100000
+            for player in players:       # find the nearest player and tracks him
+                xdi = self.x - player.xcoord
+                ydi = self.y - player.ycoord
+                distance = math.sqrt(xdi**2 + ydi**2)
+                if distance < mindis:
+                    mindis = distance  
+                    xdifference = xdi       # xdifference and ydifference will be the for the nearest player
+                    ydifference = ydi
+            if not self.target:  # when it first spawn, acquires the nearest target and go straight for it
+                if xdifference == 0:  # handle divide by zero error
+                    self.dead
+                    return False   
+                angle = math.atan(ydifference/xdifference)
+                self.xvel = self.velocity * math.cos(angle)
+                self.yvel = self.velocity * math.sin(angle)
+                if xdifference > 0 and ydifference > 0:
+                    self.xvel = -xvel
+                    self.yvel = -yvel
+                elif xdifference > 0  and ydifference < 0:
+                    self.xvel = -self.xvel
+                    self.yvel = -self.yvel
+                self.target = True
+            self.x += self.xvel
+            self.y += self.yvel
+            self.detecthit(players)
+            self.movehitbox()
+            return True
+        else:
+            return False
+    def movehitbox(self):
+        self.hitboxes[0]=((self.x, self.y+27,60,17))
+    def detecthit(self,players):  # detect if player hitbox is inside enemy hitbox
+        for hitbox in self.hitboxes:
+            box = pygame.Rect(hitbox[0],hitbox[1],hitbox[2],hitbox[3])
+            for player in players:
+                for phitbox in player.hitboxes:
+                    playerbox = pygame.Rect(phitbox[0],phitbox[1],phitbox[2],phitbox[3])
+                    if playerbox.colliderect(box): 
+                        if player.iframe == 0 :
+                            player.hit(self.attack)        # if rects collide minus health from player
+                            self.dead = True
+                            player.iframe += 1
+
+
+class enemy4(enemy):  # plane with tracking capability (to be implemented)
     def __init__(self,x,y,window):
         super().__init__(x,y,window)
         self.image =  pygame.transform.rotate(pygame.image.load("images/more/aircraft_2.png"),180)

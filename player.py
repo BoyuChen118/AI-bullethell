@@ -25,14 +25,15 @@ class player():
         self.score = 0
     def action(self,num,window):
         winwidth,winheight = window.get_size()
-        if num == 0 and self.ycoord >= self.velocity:
+        if num <= 0 and self.ycoord >= self.velocity:
             self.ycoord -= self.velocity
         elif num == 1 and self.ycoord <= winheight-(self.height+self.velocity):
             self.ycoord += self.velocity
         elif num == 2 and self.xcoord >= self.velocity:
             self.xcoord -= self.velocity
-        elif num == 3 and self.xcoord <= winwidth-(self.width+self.velocity):
+        elif num >= 3 and self.xcoord <= winwidth-(self.width+self.velocity):
             self.xcoord += self.velocity
+      
     def fire(self,window):
             b = bullet(self.xcoord+20,self.ycoord,window)      #old value : 0
             b2 = bullet(self.xcoord+62,self.ycoord,window)  # old value : +82
