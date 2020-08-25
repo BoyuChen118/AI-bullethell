@@ -10,7 +10,7 @@ pygame.init()
 winwidth = 1000
 winheight = 700
 window = pygame.display.set_mode((winwidth,winheight))
-difficulty = 3
+difficulty = 4
 pygame.display.set_caption("Plane Game")
 run = True
 training = True
@@ -23,7 +23,7 @@ background = pygame.image.load("images/nightsky.png")
 background = pygame.transform.scale(background, (1000, 700))
 Cycle = 0
 Over = False  # if the game is over
-trainingmode = True # enter training mode (train neural network to play the game)
+trainingmode = False # enter training mode (train neural network to play the game)
 oldmove = 0   # avoid AI doing the same moves
 oldmove2 = 0
 showhitbox = False  # show enemy hitboxes (for debugging only)
@@ -95,19 +95,17 @@ def checkplayer(player,enemies,Over):
     global training
     global networks
     global genes
-    if player.dead and len(players)>0:
+    if player.dead and len(players)>0 and trainingmode:
         genes.pop(players.index(player))
         networks.pop(players.index(player))   # remove the gene and network once its host dies
         players.pop(players.index(player))
-        if len(players)==0 and trainingmode: 
+        if len(players)==0: 
             training = False    # end generation
     elif player.dead and len(players)==1 and not trainingmode:  
         pause = not pause
         deathtext = bigfont.render('Game Over',1,(255,0,0) )
         window.blit(deathtext, (330,250))
 
-
-  
     if Over and not player.dead and len(enemies) == 0:   # player won
         if trainingmode:
             training = False
@@ -140,7 +138,7 @@ def observe(player): # observe the player's surroundings and find closest danger
         counter += 1
         retlist[counter] = enemylist[index].hitboxes[0][2]  
         counter += 1
-        retlist[counter] = enemylist[index].y
+        retlist[counter] = enemylist[index].y   # also y position and enemy id
         counter += 1
         retlist[counter] = enemylist[index].id
         counter += 1
@@ -161,10 +159,12 @@ def redraw(keys):
     global oldmove2
     window.blit(background,(0,0))
     if len(players)== 1 and not trainingmode:  # single player mode
-        healthtext = f.render('Health: '+ str(players[0].health),1,(0,255,0))   # display health
+        healthtext = f.render('Health: '+ str(players[0].health),1,(0,255,0))   # display health,score and nukes
         scoretext = f.render('Score: '+ str(players[0].score),1,(255,255,0))
+        nuketext = f.render('Nukes: '+ str(players[0].nukes),1,(255,0,130))
         window.blit(healthtext,(800,0))
         window.blit(scoretext,(800,50))
+        window.blit(nuketext,(800,100))
     if trainingmode:
         healthtext = f.render('Generation: '+ str(gennum),1,(255,255,255))   # display health
         scoretext = f.render('Population: '+ str(len(players)),1,(255,255,255))
@@ -210,14 +210,16 @@ def redraw(keys):
         if Cycle >= determinecycle():
             Over = True
 
-    if len(players) == 0 and trainingmode:
-        training = False
     for index,p in enumerate(players):  # update player(s) position(s)
         if not trainingmode:
             p.move(keys,window,enemies)
+            if p.nukeboard:     # kill all enemies
+                for e in enemies:
+                    p.score += e.scorevalue
+                enemies.clear()
+                p.nukeboard = False
         else:
             genes[index].fitness += 0.01
-            genes[index].fitness += p.score//50
             if p.xcoord < 50:
                 genes[index].fitness -= 0.3 # avoid camping
             observation  = observe(p)
@@ -300,7 +302,7 @@ def train(config_file):
     p.add_reporter(stats)
 
     # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 30)
+    winner = p.run(eval_genomes, 100)
 
 def main():
     global run

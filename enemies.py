@@ -75,7 +75,7 @@ class enemy():  # standard plane, slow but heavy hitter
                     playerbox = pygame.Rect(phitbox[0],phitbox[1],phitbox[2],phitbox[3])
                     if playerbox.colliderect(box): 
                         if player.iframe == 0 :
-                            player.hit(self.attack)        # if rects collide minus health from player
+                            player.hit(self.attack)        # if rects collide minus health from player only if player is not invulnerable (not in iframe)
                             player.iframe += 1
 
 class enemy2(enemy):  # fast plane with lighter attack
@@ -117,7 +117,7 @@ class enemy3(enemy):  # kamakazi plane with tracking capability  (nerfed, now on
     def displayrotor(self):
         pass
     def move(self,players):
-        if self.yhitbox[1] + self.velocity <= 700:
+        if self.hitboxes[0][1] + self.velocity <= 700:
                                                     # tracking algorithm
        
             xdifference = 0
@@ -183,7 +183,7 @@ class enemy4(enemy):  # plane with tracking capability (to be implemented)
     def displayrotor(self):
         pass
     def move(self,players):
-        if self.yhitbox[1] + self.velocity <= 700:
+        if self.hitboxes[0][1] + self.velocity <= 700:
                                                     # tracking algorithm
        
             xdifference = 0

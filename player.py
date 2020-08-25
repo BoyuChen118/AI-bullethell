@@ -1,5 +1,5 @@
 import pygame,time
-from projectiles import bullet
+from projectiles import bullet,nuke
 class player():
     def __init__(self,xcoord,ycoord,width,height):
         self.health = 100
@@ -15,6 +15,8 @@ class player():
         self.rotor = pygame.image.load("images/rotor01.png")
         self.bullets = []
         self.bulletdelay = 0
+        self.explosiondelay = 100
+        self.nukes = 1
         self.hitboxes = []
         self.xhitbox = (self.xcoord,self.ycoord+22,90,20)   # horizontal hitbox
         self.yhitbox = (self.xcoord+40,self.ycoord,10,70)   # vertical hitbox
@@ -22,6 +24,7 @@ class player():
         self.hitboxes.append(self.yhitbox)
         self.iframe = 0
         self.dead = False
+        self.nukeboard = False  # kill all enemies
         self.score = 0
     def action(self,num,window):
         winwidth,winheight = window.get_size()
@@ -41,6 +44,13 @@ class player():
                 self.bullets.append(b)
                 self.bullets.append(b2)
                 self.bulletdelay = 5          # adjust shooting speed (lower the faster)
+    def firenuke(self,window):
+        n = nuke(self.xcoord+30,self.ycoord+10,window)
+        if self.nukes > 0 and self.bulletdelay <= 0:
+            self.bullets.append(n)
+            self.nukes -= 1
+            self.bulletdelay = 10   #firing nuke will result in longer delay for the next shot
+        
     def move(self,keys,window,enemies):  #move and draw it self and bullet
         winwidth,winheight = window.get_size()
         if keys[pygame.K_w] and self.ycoord >= self.velocity:
@@ -53,6 +63,8 @@ class player():
             self.action(3,window)
         if keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]:
             self.fire(window)
+        if keys[pygame.K_SPACE]:
+            self.firenuke(window)
         self.check(window,enemies)
     def check(self,window,enemies):
         self.hitboxes[0] = (self.xcoord,self.ycoord+22,90,20)
@@ -64,13 +76,19 @@ class player():
                 for box in e.hitboxes:
                     if b.x > box[0] and b.y > box[1] and b.x < box[0]+box[2] and b.y < box[1]+box[3]:
                         e.hit()
+                        if b.id == 'n':  # if the bullet is a nuke then wipe board
+                            self.nukeboard = True
+                            self.explosiondelay = 0
                         displaybullet = False
                         if e.dead:    # increment score if scores a kill
                             self.score += e.scorevalue
             if not b.move() or not displaybullet:
                 self.bullets.pop(self.bullets.index(b))
             if displaybullet:
+                if b.shadow is not None:
+                    window.blit(b.shadow,(b.x-1,b.y+13))
                 window.blit(b.image,(b.x,b.y))
+                
             
 
         window.blit(self.mainplaneshadow,(self.xcoord-5,self.ycoord-5))
@@ -93,7 +111,14 @@ class player():
                 window.blit(self.damaged,(self.xcoord,self.ycoord))
 
         if self.bulletdelay > 0:
-            self.bulletdelay-=1
+            self.bulletdelay -= 1
+        if self.explosiondelay < 100:
+            self.explosiondelay += 1
+            explosioncolor = pygame.Surface((1000,700))
+            explosioncolor.fill((255,255,255))
+            if self.explosiondelay >= 10:
+                explosioncolor.set_alpha(255//(self.explosiondelay//10))
+            window.blit(explosioncolor,(0,0))
     def hit(self,dmg):   # subtract dmg from health if hit
         self.health -= dmg 
         if self.health <= 0 :
