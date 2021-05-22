@@ -191,7 +191,7 @@ def redraw(keys):
         scoretext = f.render('Population: '+ str(len(players)),1,(255,255,255))
         window.blit(healthtext,(800,0))
         window.blit(scoretext,(800,50))
-    if Over:   # check if game is over first
+    if Over:   # handle post game 
         for enemy in enemies:  # check state of all enemies
                 if showhitbox:
                     enemy.showhitbox = True
@@ -240,7 +240,7 @@ def redraw(keys):
                 enemies.clear()
                 p.nukeboard = False
         else:
-            genes[index].fitness += 0.01
+            genes[index].fitness += 0.01 # reward surviving
             if p.xcoord < 50:
                 genes[index].fitness -= 0.3 # avoid camping
             observation  = observe(p)

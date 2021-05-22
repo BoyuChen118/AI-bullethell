@@ -26,7 +26,7 @@ class player():
         self.dead = False
         self.nukeboard = False  # kill all enemies
         self.score = 0
-    def action(self,num,window):
+    def action(self,num,window):  # 0 == forward, 1 == backward, 2 == left, 3 == right
         winwidth,winheight = window.get_size()
         if num <= 0 and self.ycoord >= self.velocity:
             self.ycoord -= self.velocity
