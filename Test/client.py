@@ -1,8 +1,7 @@
 import socket
 
 HEADER = 64  # header for how long it is
-HOST = '10.0.0.122'  # this should be whatever the host name is
-print(HOST)
+HOST = socket.gethostbyname(socket.gethostname())  # this should be whatever the host name is
 PORT = 5001
 FORMAT = "utf-8"
 ADDR = (HOST, PORT)
@@ -10,7 +9,7 @@ ADDR = (HOST, PORT)
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 # new message 
-msg = "good night"
+msg = "endserver"
 msg = msg.encode(FORMAT)
 msg_length = len(msg)
 if msg_length <= HEADER:
@@ -19,3 +18,4 @@ if msg_length <= HEADER:
     client.send(msg)
 else:
     print("message is too long")
+client.close()
