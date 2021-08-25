@@ -1,50 +1,57 @@
 import socket
 import threading
 
-client_lock = threading.Lock()
-HEADER = 64  # header for how long it is
-HOST = socket.gethostbyname(socket.gethostname())
-print(HOST)
-PORT = 5001
-ADDR = (HOST, PORT)
-FORMAT = "utf-8"
-endServer = False
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-server.bind(ADDR)
+class GameServer:
+    def __init__(self,port):
+        self.client_lock = threading.Lock()
+        self.HEADER = 64  # header for how long it is
+        self.HOST = socket.gethostbyname(socket.gethostname())
+        self.PORT = port     # 5001
+        self.ADDR = (self.HOST, self.PORT)
+        self.FORMAT = "utf-8"
+        self.endServer = False
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.server.bind(self.ADDR)
 
-def handle_client(connection, addr):
-    global endServer
-    client_lock.acquire()
-    print(f"new connection from {addr}")
-    conn = True
-    while conn:
-        try:
-            # print("BLOCKING BY RECV....")
-            length = connection.recv(HEADER).decode(FORMAT)
-            print(length)
-            if len(length) > 0:
-                length = int(length[:HEADER])
-                msg = connection.recv(length).decode(FORMAT)
-                if msg == 'disconnect' or msg == 'endserver':
-                    if msg == 'endserver':
-                        endServer = True
-                    conn = False
-                    client_lock.release()
-                    
+        
+    def handle_client(self,connection, addr):
+        self.client_lock.acquire()
+        print(f"new connection from {addr}")
+        conn = True
+        while conn:
+            try:
+                # print("BLOCKING BY RECV....")
+                length = connection.recv(self.HEADER).decode(self.FORMAT)
+                if len(length) > 0:
+                    length = int(length[:self.HEADER])
+                    msg = connection.recv(length).decode(self.FORMAT)
+                    if msg == 'disconnect' or msg == 'endserver':
+                        if msg == 'endserver':
+                            self.endServer = True
+                        conn = False
+                        self.client_lock.release()
+                    print("a message recv from client!!")
+            except Exception:
+                print(Exception)
+    def connect_client(self):
+        if not self.endServer:
+            self.server.listen()
+            print("Waiting...")
+            clientsock, foreign_address = self.server.accept()
+            print('Connected by', foreign_address)
+            thread = threading.Thread(target=self.handle_client, args=(clientsock, foreign_address))
+            thread.start()
+        while not self.endServer:
+            pass
+        self.server.close()
+        
 
-                print(msg)
-        except Exception:
-            print(Exception)
-            thread.join()
+gameserver = GameServer(port=5001)
+gameserver.connect_client()
 
-while not endServer:
-    server.listen()
-    clientsock, foreign_address = server.accept()
-    print('Connected by', foreign_address)
-    thread = threading.Thread(target=handle_client, args=(clientsock, foreign_address))
-    thread.start()
+
+   
+
     
-
-server.close()
