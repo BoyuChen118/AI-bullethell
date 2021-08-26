@@ -34,7 +34,7 @@ class GameServer:
                             self.endServer = True
                         conn = False
                         self.client_lock.release()
-                    print("a message recv from client!!")
+                    print(msg)
             except Exception:
                 print(Exception)
                 break

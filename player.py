@@ -123,3 +123,5 @@ class player():
         self.health -= dmg 
         if self.health <= 0 :
             self.dead = True
+    def position(self):
+        return (self.xcoord,self.ycoord)

@@ -48,8 +48,10 @@ def startClient(host,port):
     PORT = port
     FORMAT = "utf-8"
     ADDR = (HOST, PORT)
+    global client
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect(ADDR)
+    print(client.type)
     # new message 
     msg = "endserve"
     msg = msg.encode(FORMAT)
@@ -59,7 +61,7 @@ def startClient(host,port):
         client.send(str(msg_length).encode(FORMAT)+str(' '*(HEADER - header_length)).encode(FORMAT)+msg)
         #client.send(msg)
         sleep(5)
-        msg = "endserver"
+        msg = "endser"
         msg = msg.encode(FORMAT)
         msg_length = len(msg)
         header_length = len(str(msg_length).encode(FORMAT))
@@ -69,7 +71,6 @@ def startClient(host,port):
         
     else:
         print("message is too long")
-    client.close()
 
 #s
 def determinecycle():  # determine how many cycles to the level
@@ -365,9 +366,11 @@ def main_menu():  # draws the main menu
         mainmenutext= mediumfont.render('Press any key to continue',1,(127,69,216))
         window.blit(mainmenutext,(250,320))
         for event in pygame.event.get():
+
             if event.type == pygame.QUIT:
                 run = False
                 mainmenu = False
+                client.close()
             if event.type == pygame.KEYDOWN:
                 mainmenu = False
                 time.sleep(0.5)  # small deplay so the key pressed won't trigger any player action
@@ -386,10 +389,20 @@ def main():
     global pause
     p = player(500,600,100,100)
     players.append(p)
+    
     while run:
+        
         gameclock.tick(50) # fps controller
+        FORMAT = "utf-8"
+        msg = f"player is at {p.position()}"
+        msg_length = len(msg)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                msg = "endserver"
+                msg = msg.encode(FORMAT)
+                header_length = len(str(msg_length).encode(FORMAT))
+                client.send(str(msg_length).encode(FORMAT)+str(' '*(64 - header_length)).encode(FORMAT)+msg)
+                client.close()
                 run = False
         keys = pygame.key.get_pressed()
         if keys[pygame.K_ESCAPE]:
@@ -400,7 +413,12 @@ def main():
         mainmenutext = f.render('Press any keys to continue',1,(255,255,0))
         window.blit(mainmenutext,(400,400))
         window.blit(background,(0,0))
+        if not isHost and client.type == socket.SocketKind.SOCK_STREAM:  # client code
+            msg = msg.encode(FORMAT)
+            header_length = len(str(msg_length).encode(FORMAT))
+            client.send(str(msg_length).encode(FORMAT)+str(' '*(64 - header_length)).encode(FORMAT)+msg)
         redraw(keys)
+    
     pygame.quit()
 
 if __name__ == '__main__':
