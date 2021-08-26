@@ -1,4 +1,3 @@
-from Test.client import PORT
 import math,socket
 import random
 import time
@@ -10,7 +9,8 @@ from player import player
 from enemies import enemy, enemy2, enemy3
 from GameServer import GameServer
 pygame.init()
-server = GameServer(37059)
+server = GameServer(port=37059)
+isHost = False
 winwidth = 1000
 winheight = 700
 window = pygame.display.set_mode((winwidth, winheight))
@@ -44,11 +44,10 @@ client = socket.socket()
 
 def startClient(host,port):
     HEADER = 64  # header for how long it is
-    HOST = "10.0.0.199"  # this should be whatever the host name is
-    PORT = 37059
+    HOST = host  # this should be whatever the host name is
+    PORT = port
     FORMAT = "utf-8"
     ADDR = (HOST, PORT)
-
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect(ADDR)
     # new message 
@@ -368,13 +367,17 @@ def main_menu():  # draws the main menu
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                mainmenu = False
             if event.type == pygame.KEYDOWN:
                 mainmenu = False
                 time.sleep(0.5)  # small deplay so the key pressed won't trigger any player action
         pygame.display.update()
 
 def game():
-    startClient(host="10.0.0.199",port=37059)
+    if isHost:
+        server.connect_client(server.handle_client)
+    else:
+        startClient("10.0.0.199",37059)
     main_menu()
     main()
 
