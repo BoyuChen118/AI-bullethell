@@ -1,6 +1,7 @@
-import math
+import math,socket
 import random
 import time
+from time import sleep
 import neat
 import os,sys
 import pygame
@@ -9,7 +10,6 @@ from enemies import enemy, enemy2, enemy3
 from GameServer import GameServer
 pygame.init()
 server = GameServer(37059)
-server.connect_client()
 winwidth = 1000
 winheight = 700
 window = pygame.display.set_mode((winwidth, winheight))
@@ -39,6 +39,36 @@ players = []
 networks = []
 genes = []
 gennum = 0
+client = socket.socket()
+
+def startClient():
+    HEADER = 64  # header for how long it is
+    HOST = socket.gethostbyname(socket.gethostname())  # this should be whatever the host name is
+    PORT = 37059
+    FORMAT = "utf-8"
+    ADDR = (HOST, PORT)
+    print("Connecting to server...")
+
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect(ADDR)
+    # new message 
+    msg = "endserve"
+    msg = msg.encode(FORMAT)
+    msg_length = len(msg)
+    if msg_length <= HEADER:
+        header_length = len(str(msg_length).encode(FORMAT))
+        client.send(str(msg_length).encode(FORMAT)+str(' '*(HEADER - header_length)).encode(FORMAT)+msg)
+        #client.send(msg)
+        sleep(50)
+        msg = "endserver"
+        msg = msg.encode(FORMAT)
+        msg_length = len(msg)
+        header_length = len(str(msg_length).encode(FORMAT))
+        client.send(str(msg_length).encode(FORMAT)+str(' '*(HEADER - header_length)).encode(FORMAT))
+        client.send(msg)
+    else:
+        print("message is too long")
+    client.close()
 
 #s
 def determinecycle():  # determine how many cycles to the level
@@ -341,7 +371,10 @@ def main_menu():  # draws the main menu
                 time.sleep(0.5)  # small deplay so the key pressed won't trigger any player action
         pygame.display.update()
 
-
+def game():
+    server.connect_client(server.handle_client)
+    main_menu()
+    main()
 
 def main():
     global run   # true if game has started
@@ -371,5 +404,4 @@ if __name__ == '__main__':
     if trainingmode:
         train(config_path)
     else:
-        main_menu()
-        main()
+        game()

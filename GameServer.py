@@ -16,6 +16,7 @@ class GameServer:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind(self.ADDR)
+        self.server.listen()
 
         
     def handle_client(self,connection, addr):
@@ -38,22 +39,20 @@ class GameServer:
             except Exception:
                 print(Exception)
                 break
-    def connect_client(self):
+    def connect_client(self,func):
         if not self.endServer:
-            self.server.listen()
             print("Waiting...")
             clientsock, foreign_address = self.server.accept()
             print('Connected by', foreign_address)
-            thread = threading.Thread(target=self.handle_client, args=(clientsock, foreign_address))
+            thread = threading.Thread(target=func, args=(clientsock, foreign_address))
             thread.start()
         # while not self.endServer:
         #     pass
         self.server.close()
         
-
-# Test code below
-gameserver = GameServer(port=37059)
-gameserver.connect_client()
+if __name__ == '__main__':
+    gameserver = GameServer(port=37059)
+    gameserver.connect_client(gameserver.handle_client)
 
 
    
