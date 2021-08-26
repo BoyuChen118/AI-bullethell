@@ -1,3 +1,4 @@
+from Test.client import PORT
 import math,socket
 import random
 import time
@@ -41,13 +42,12 @@ genes = []
 gennum = 0
 client = socket.socket()
 
-def startClient():
+def startClient(host,port):
     HEADER = 64  # header for how long it is
-    HOST = socket.gethostbyname(socket.gethostname())  # this should be whatever the host name is
+    HOST = "10.0.0.199"  # this should be whatever the host name is
     PORT = 37059
     FORMAT = "utf-8"
     ADDR = (HOST, PORT)
-    print("Connecting to server...")
 
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect(ADDR)
@@ -59,13 +59,15 @@ def startClient():
         header_length = len(str(msg_length).encode(FORMAT))
         client.send(str(msg_length).encode(FORMAT)+str(' '*(HEADER - header_length)).encode(FORMAT)+msg)
         #client.send(msg)
-        sleep(50)
+        sleep(5)
         msg = "endserver"
         msg = msg.encode(FORMAT)
         msg_length = len(msg)
         header_length = len(str(msg_length).encode(FORMAT))
         client.send(str(msg_length).encode(FORMAT)+str(' '*(HEADER - header_length)).encode(FORMAT))
         client.send(msg)
+        print("both msg sent")
+        
     else:
         print("message is too long")
     client.close()
@@ -372,7 +374,7 @@ def main_menu():  # draws the main menu
         pygame.display.update()
 
 def game():
-    server.connect_client(server.handle_client)
+    startClient(host="10.0.0.199",port=37059)
     main_menu()
     main()
 

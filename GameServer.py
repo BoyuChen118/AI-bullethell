@@ -13,10 +13,8 @@ class GameServer:
         self.ADDR = (self.HOST, self.PORT)
         self.FORMAT = "utf-8"
         self.endServer = False
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.server.bind(self.ADDR)
-        self.server.listen()
+        
+        
 
         
     def handle_client(self,connection, addr):
@@ -41,6 +39,10 @@ class GameServer:
                 break
     def connect_client(self,func):
         if not self.endServer:
+            self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.server.bind(self.ADDR)
+            self.server.listen()
             print("Waiting...")
             clientsock, foreign_address = self.server.accept()
             print('Connected by', foreign_address)
