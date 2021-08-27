@@ -66,6 +66,7 @@ class player():
         if keys[pygame.K_SPACE]:
             self.firenuke(window)
         self.check(window,enemies)
+
     def check(self,window,enemies):
         self.hitboxes[0] = (self.xcoord,self.ycoord+22,90,20)
         self.hitboxes[1] = (self.xcoord+40,self.ycoord,10,70)
@@ -125,3 +126,6 @@ class player():
             self.dead = True
     def position(self):
         return (self.xcoord,self.ycoord)
+
+    def newPos(self, newX, newY):
+        self.xcoord,self.ycoord = newX,newY

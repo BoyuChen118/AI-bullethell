@@ -1,4 +1,4 @@
-import socket
+import socket,string
 import threading
 
 
@@ -18,9 +18,9 @@ class GameServer:
         self.isWaiting = True
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.serverData = ""
+        self.serverData = []
           
-    def handle_client(self,connection, addr):
+    def handle_client(self,connection, addr): # receive info from client
         self.client_lock.acquire()
         print(f"new connection from {addr}")
         conn = True
@@ -30,13 +30,17 @@ class GameServer:
                 length = connection.recv(self.HEADER).decode(self.FORMAT)
                 if len(length) > 0:
                     length = int(length[:self.HEADER])
-                    msg = connection.recv(length).decode(self.FORMAT)
+                    msg = str(connection.recv(length).decode(self.FORMAT))
                     if msg == 'disconnect' or msg == 'endserver':
                         if msg == 'endserver':
                             self.endServer = True
                         conn = False
                         self.client_lock.release()
-                    self.serverData = msg
+                    temp = msg.split(" ")
+                    for element in temp:
+                        self.serverData.append(int(element))
+                    print(self.serverData)
+                        
             except Exception:
                 print(Exception)
                 break
@@ -55,6 +59,8 @@ class GameServer:
             thread = threading.Thread(target=func, args=(self.clientsock, self.foreign_address))
             thread.start()
         self.server.close()
+    def update_serverSide(self):
+        pass
         
 if __name__ == '__main__':
     # example code for using gameserver

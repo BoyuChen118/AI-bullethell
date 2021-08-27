@@ -401,7 +401,7 @@ def main():
         
         gameclock.tick(50) # fps controller
         FORMAT = "utf-8"
-        msg = f"player is at {p.position()}"
+        msg = f"{p.position()[0]} {p.position[1]}"
         msg_length = len(msg)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -419,10 +419,12 @@ def main():
         if pause:
             continue
         window.blit(background,(0,0))
-        if not isHost and client.type == socket.SocketKind.SOCK_STREAM:  # client code
+        if not isHost and client.type == socket.SocketKind.SOCK_STREAM:  # client updates position and send to server
             msg = msg.encode(FORMAT)
             header_length = len(str(msg_length).encode(FORMAT))
             client.send(str(msg_length).encode(FORMAT)+str(' '*(64 - header_length)).encode(FORMAT)+msg)
+        else:  # server get player 2 position and updates own position
+            p.move()
         redraw(keys)
     
     pygame.quit()
