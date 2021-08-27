@@ -60,7 +60,7 @@ def startClient(host,port):
         header_length = len(str(msg_length).encode(FORMAT))
         client.send(str(msg_length).encode(FORMAT)+str(' '*(HEADER - header_length)).encode(FORMAT)+msg)
         #client.send(msg)
-        sleep(5)
+        sleep(1)
         msg = "endser"
         msg = msg.encode(FORMAT)
         msg_length = len(msg)
@@ -150,7 +150,7 @@ def checkplayer(player, enemies, Over):
         players.pop(players.index(player))
         if len(players) == 0:
             training = False    # end generation
-    elif player.dead and len(players) == 1 and not trainingmode:
+    elif player.dead and not trainingmode:
         pause = not pause
         deathtext = bigfont.render('Game Over', 1, (255, 0, 0))
         window.blit(deathtext, (330, 250))
@@ -212,7 +212,7 @@ def redraw(keys):
     global oldmove
     global oldmove2
     window.blit(background, (0, 0))
-    if len(players)== 1 and not trainingmode:  # single player mode
+    if not trainingmode:  # single player mode
         healthtext = f.render('Health: '+ str(players[0].health),0,(0,255,0))   # display health,score and nukes
         scoretext = f.render('Score: '+ str(players[0].score),1,(255,255,0))
         nuketext = f.render('Nukes: '+ str(players[0].nukes),1,(255,0,130))
@@ -418,8 +418,6 @@ def main():
             time.sleep(0.5)
         if pause:
             continue
-        mainmenutext = f.render('Press any keys to continue',1,(255,255,0))
-        window.blit(mainmenutext,(400,400))
         window.blit(background,(0,0))
         if not isHost and client.type == socket.SocketKind.SOCK_STREAM:  # client code
             msg = msg.encode(FORMAT)

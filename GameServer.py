@@ -18,6 +18,7 @@ class GameServer:
         self.isWaiting = True
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.serverData = ""
           
     def handle_client(self,connection, addr):
         self.client_lock.acquire()
@@ -35,7 +36,7 @@ class GameServer:
                             self.endServer = True
                         conn = False
                         self.client_lock.release()
-                    print(msg)
+                    self.serverData = msg
             except Exception:
                 print(Exception)
                 break
@@ -53,8 +54,6 @@ class GameServer:
             print('Connected by', self.foreign_address)
             thread = threading.Thread(target=func, args=(self.clientsock, self.foreign_address))
             thread.start()
-        # while not self.endServer:
-        #     pass
         self.server.close()
         
 if __name__ == '__main__':
