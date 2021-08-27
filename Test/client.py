@@ -3,7 +3,7 @@ from time import sleep
 
 HEADER = 64  # header for how long it is
 HOST = "10.0.0.199"  # this should be whatever the host name is
-#HOST = socket.gethostbyname(socket.gethostname())
+#HOST = socket.gethostbyname("DESKTOP-6RDVEI4")
 PORT = 37059
 FORMAT = "utf-8"
 ADDR = (HOST, PORT)

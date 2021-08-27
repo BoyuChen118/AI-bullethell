@@ -363,7 +363,10 @@ def main_menu():  # draws the main menu
     global run,window
     while mainmenu:
         gameclock.tick(50)
-        mainmenutext= mediumfont.render('Press any key to continue',1,(127,69,216))
+        if isHost:
+            mainmenutext = mediumfont.render('Waiting for second player to connect...',1,(127,69,216))
+        else:
+            mainmenutext = mediumfont.render('Press any key to continue',1,(127,69,216))
         window.blit(mainmenutext,(250,320))
         for event in pygame.event.get():
 
@@ -389,7 +392,6 @@ def main():
     global pause
     p = player(500,600,100,100)
     players.append(p)
-    
     while run:
         
         gameclock.tick(50) # fps controller

@@ -13,10 +13,12 @@ class GameServer:
         self.ADDR = (self.HOST, self.PORT)
         self.FORMAT = "utf-8"
         self.endServer = False
-        
-        
-
-        
+        self.clientsock = None
+        self.foreign_address = None
+        self.isWaiting = True
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+          
     def handle_client(self,connection, addr):
         self.client_lock.acquire()
         print(f"new connection from {addr}")
@@ -37,16 +39,19 @@ class GameServer:
             except Exception:
                 print(Exception)
                 break
+    def WaitForClient(self):
+        self.server.bind(self.ADDR)
+        self.server.listen()
+        self.clientsock, self.foreign_address = self.server.accept()
+        self.isWaiting = False
+        print("client connected")
+    def wait_client(self):
+        waitingThread = threading.Thread(target=self.WaitForClient)
+        waitingThread.start()
     def connect_client(self,func):
         if not self.endServer:
-            self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.server.bind(self.ADDR)
-            self.server.listen()
-            print("Waiting...")
-            clientsock, foreign_address = self.server.accept()
-            print('Connected by', foreign_address)
-            thread = threading.Thread(target=func, args=(clientsock, foreign_address))
+            print('Connected by', self.foreign_address)
+            thread = threading.Thread(target=func, args=(self.clientsock, self.foreign_address))
             thread.start()
         # while not self.endServer:
         #     pass
@@ -54,6 +59,9 @@ class GameServer:
         
 if __name__ == '__main__':
     gameserver = GameServer(port=37059)
+    gameserver.wait_client()
+    while gameserver.isWaiting:
+        print("I'm WAITING!!")
     gameserver.connect_client(gameserver.handle_client)
 
 
