@@ -397,11 +397,12 @@ def main():
     global pause
     p = player(500,600,100,100)
     players.append(p)
+    p2= player(500,600,100,100)
     while run:
         
         gameclock.tick(50) # fps controller
         FORMAT = "utf-8"
-        msg = f"{p.position()[0]} {p.position[1]}"
+        msg = f"{p.position()[0]} {p.position()[1]}"
         msg_length = len(msg)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -424,7 +425,7 @@ def main():
             header_length = len(str(msg_length).encode(FORMAT))
             client.send(str(msg_length).encode(FORMAT)+str(' '*(64 - header_length)).encode(FORMAT)+msg)
         else:  # server get player 2 position and updates own position
-            p.move()
+            p2.newPos(server.serverData[0],server.serverData[1])
         redraw(keys)
     
     pygame.quit()

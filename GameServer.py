@@ -37,9 +37,12 @@ class GameServer:
                         conn = False
                         self.client_lock.release()
                     temp = msg.split(" ")
+                    self.serverData.clear()
                     for element in temp:
-                        self.serverData.append(int(element))
-                    print(self.serverData)
+                        try:
+                            self.serverData.append(int(element))
+                        except:
+                            continue
                         
             except Exception:
                 print(Exception)
