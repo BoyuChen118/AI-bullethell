@@ -48,7 +48,7 @@ class GameServer:
     def wait_client(self):
         waitingThread = threading.Thread(target=self.WaitForClient)
         waitingThread.start()
-    def connect_client(self,func):
+    def connect_client(self,func):   # call this function when connection has already been established
         if not self.endServer:
             print('Connected by', self.foreign_address)
             thread = threading.Thread(target=func, args=(self.clientsock, self.foreign_address))
@@ -58,6 +58,7 @@ class GameServer:
         self.server.close()
         
 if __name__ == '__main__':
+    # example code for using gameserver
     gameserver = GameServer(port=37059)
     gameserver.wait_client()
     while gameserver.isWaiting:

@@ -361,13 +361,17 @@ def train(config_file):
 def main_menu():  # draws the main menu 
     global mainmenu
     global run,window
-    while mainmenu:
+    if isHost:
+        server.wait_client()
+    while (not isHost and mainmenu) or (isHost and server.isWaiting):
         gameclock.tick(50)
         if isHost:
             mainmenutext = mediumfont.render('Waiting for second player to connect...',1,(127,69,216))
+            window.blit(mainmenutext,(150,320))
         else:
-            mainmenutext = mediumfont.render('Press any key to continue',1,(127,69,216))
-        window.blit(mainmenutext,(250,320))
+            mainmenutext = mediumfont.render('Press any key to connect',1,(127,69,216))
+            window.blit(mainmenutext,(250,320))
+        
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
@@ -376,14 +380,15 @@ def main_menu():  # draws the main menu
                 client.close()
             if event.type == pygame.KEYDOWN:
                 mainmenu = False
+                if not isHost:
+                    startClient("10.0.0.199",37059)
                 time.sleep(0.5)  # small deplay so the key pressed won't trigger any player action
         pygame.display.update()
-
-def game():
     if isHost:
-        server.connect_client(server.handle_client)
-    else:
-        startClient("10.0.0.199",37059)
+        server.connect_client(server.handle_client)    
+        
+
+def game():      
     main_menu()
     main()
 
@@ -400,10 +405,11 @@ def main():
         msg_length = len(msg)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                msg = "endserver"
-                msg = msg.encode(FORMAT)
-                header_length = len(str(msg_length).encode(FORMAT))
-                client.send(str(msg_length).encode(FORMAT)+str(' '*(64 - header_length)).encode(FORMAT)+msg)
+                if not isHost:  # client code
+                    msg = "endserver"
+                    msg = msg.encode(FORMAT)
+                    header_length = len(str(msg_length).encode(FORMAT))
+                    client.send(str(msg_length).encode(FORMAT)+str(' '*(64 - header_length)).encode(FORMAT)+msg)
                 client.close()
                 run = False
         keys = pygame.key.get_pressed()
