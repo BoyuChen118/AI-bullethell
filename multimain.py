@@ -1,4 +1,4 @@
-import math,socket
+import math,socket,string
 import random
 import time
 from time import sleep
@@ -151,7 +151,7 @@ def checkplayer(player, enemies, Over):
         if len(players) == 0:
             training = False    # end generation
     elif player.dead and not trainingmode:
-        pause = not pause
+        pause = True
         deathtext = bigfont.render('Game Over', 1, (255, 0, 0))
         window.blit(deathtext, (330, 250))
 
@@ -398,8 +398,8 @@ def main():
     p = player(500,600,100,100)
     players.append(p)
     p2= player(500,600,100,100)
+    players.append(p2)
     while run:
-        
         gameclock.tick(50) # fps controller
         FORMAT = "utf-8"
         msg = f"{p.position()[0]} {p.position()[1]}"
@@ -425,7 +425,9 @@ def main():
             header_length = len(str(msg_length).encode(FORMAT))
             client.send(str(msg_length).encode(FORMAT)+str(' '*(64 - header_length)).encode(FORMAT)+msg)
         else:  # server get player 2 position and updates own position
-            p2.newPos(server.serverData[0],server.serverData[1])
+            if len(server.serverData) == 2:
+                p2.newPos(server.serverData[0],server.serverData[1])
+        print(f"pause if {pause}")
         redraw(keys)
     
     pygame.quit()
